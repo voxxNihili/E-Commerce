@@ -28,6 +28,10 @@ const useStyles = makeStyles({
   },
   bold: {
     fontWeight: 600
+  },
+  form: {
+    maxWidth: 800,
+    margin: "10px auto"
   }
 });
 export default useStyles;

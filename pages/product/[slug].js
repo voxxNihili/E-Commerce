@@ -1,48 +1,54 @@
 import React, { useContext } from "react";
-// import { useRouter } from "next/router";
-// import data from "../../utils/data";
-import useStyles from "../../utils/styles";
-import Layout from "../../components/Layout";
 import NextLink from "next/link";
 import Image from "next/image";
 import {
-  Card,
   Grid,
   Link,
   List,
   ListItem,
   Typography,
+  Card,
   Button,
 } from "@material-ui/core";
+import Layout from "../../components/Layout";
+import useStyles from "../../utils/styles";
 import Product from "../../models/Product";
 import db from "../../utils/db";
 import axios from "axios";
-import { Store } from '../../utils/Store';
-import { useRouter } from "next/router";
+import { Store } from "../../utils/Store";
+// import { useRouter } from "next/router";
 
-function ProductScreen(props) {
-  const router = useRouter();
-  const { dispatch } = useContext(Store);
+export default function ProductScreen(props) {
+  // const router = useRouter();
+  const { state, dispatch } = useContext(Store);
   const { product } = props;
   const classes = useStyles();
-  // const router = useRouter();
-  // const { slug } = router.query;
-  // const product = data.products.find((a) => a.slug === slug);
+  if (!product) {
+    return <div>Product Not Found</div>;
+  }
   const addToCartHandler = async () => {
+    const existItem = state.cart.cartItems.find((x) => x._id === product._id);
+    console.log("existItem", existItem);
+    console.log("state", state);
+
+    const quantity = existItem ? existItem.quantity + 1 : 1;
+    console.log("quantity", quantity);
     const { data } = await axios.get(`/api/products/${product._id}`);
-    if (data.countInStock <= 0) {
-      window.alert("Sorry. Product is out of stock.");
+    console.log("data",data);
+    if (data.product.countInStock < quantity) {
+      window.alert("Sorry. Product is out of stock");
       return;
     }
-    dispatch({ type: "CART_ADD_ITEM", payload: { ...product, quantity: 1 } });
-    router.push("/cart");
+    dispatch({ type: "CART_ADD_ITEM", payload: { ...product, quantity } });
+    // router.push("/cart");
   };
-  return product ? (
+
+  return (
     <Layout title={product.name} description={product.description}>
       <div className={classes.section}>
         <NextLink href="/" passHref>
           <Link>
-            <Typography>Back to Products</Typography>
+            <Typography>back to products</Typography>
           </Link>
         </NextLink>
       </div>
@@ -59,42 +65,23 @@ function ProductScreen(props) {
         <Grid item md={3} xs={12}>
           <List>
             <ListItem>
-              <Typography className={classes.bold}>Product Name: </Typography>
-              <Typography>&nbsp;</Typography>{" "}
               <Typography component="h1" variant="h1">
                 {product.name}
               </Typography>
             </ListItem>
             <ListItem>
-              <Typography className={classes.bold}>Category: </Typography>
-              <Typography>&nbsp;</Typography>
-              <Typography>{product.category}</Typography>
+              <Typography>Category: {product.category}</Typography>
             </ListItem>
             <ListItem>
-              <Typography className={classes.bold}>Rating: </Typography>
-              <Typography>&nbsp;</Typography>
+              <Typography>Brand: {product.brand}</Typography>
+            </ListItem>
+            <ListItem>
               <Typography>
-                {product.rating} stars ({product.numReviews})
+                Rating: {product.rating} stars ({product.numReviews} reviews)
               </Typography>
             </ListItem>
             <ListItem>
-              <Typography className={classes.bold}>Brand: </Typography>
-              <Typography>&nbsp;</Typography>
-
-              <Typography>{product.brand}</Typography>
-            </ListItem>
-            <ListItem>
-              <Typography className={classes.bold}>Stock Count: </Typography>
-              <Typography>&nbsp;</Typography>
-
-              <Typography>{product.countInStock}</Typography>
-            </ListItem>
-            <ListItem>
-              <Typography className={classes.bold}>
-                {"Description: "}
-              </Typography>
-              <Typography>&nbsp;</Typography>
-              <Typography>{product.description}</Typography>
+              <Typography> Description: {product.description}</Typography>
             </ListItem>
           </List>
         </Grid>
@@ -106,34 +93,31 @@ function ProductScreen(props) {
                   <Grid item xs={6}>
                     <Typography>Price</Typography>
                   </Grid>
-                </Grid>
-                <Grid item>
-                  <Typography>${product.price}</Typography>
+                  <Grid item xs={6}>
+                    <Typography>${product.price}</Typography>
+                  </Grid>
                 </Grid>
               </ListItem>
-            </List>
-            <List>
               <ListItem>
                 <Grid container>
                   <Grid item xs={6}>
                     <Typography>Status</Typography>
                   </Grid>
-                </Grid>
-                <Grid item>
-                  <Typography>
-                    {product.countInStock ? "In Stock" : "Out of Stock"}
-                  </Typography>
+                  <Grid item xs={6}>
+                    <Typography>
+                      {product.countInStock > 0 ? "In stock" : "Unavailable"}
+                    </Typography>
+                  </Grid>
                 </Grid>
               </ListItem>
               <ListItem>
                 <Button
-                  type="button"
+                  fullWidth
                   variant="contained"
                   color="primary"
                   onClick={addToCartHandler}
-                  fullWidth
                 >
-                  Add to Cart
+                  Add to cart
                 </Button>
               </ListItem>
             </List>
@@ -141,14 +125,8 @@ function ProductScreen(props) {
         </Grid>
       </Grid>
     </Layout>
-  ) : (
-    <Layout>
-      <Typography>Product Not Found</Typography>
-    </Layout>
   );
 }
-
-export default ProductScreen;
 
 export async function getServerSideProps(context) {
   const { params } = context;
