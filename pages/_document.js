@@ -9,7 +9,7 @@ export default class ECommerceDocument extends Document {
         <Head>
           <link rel="preconnect" href="https://fonts.googleapis.com" />
            {/* eslint-disable-next-line react/no-unknown-property */}
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin />
           <link
             href="https://fonts.googleapis.com/css2?family=Arvo:wght@400;500;600;700;800&display=swap"
             rel="stylesheet"

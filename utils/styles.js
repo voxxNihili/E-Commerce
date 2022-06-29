@@ -8,6 +8,10 @@ const useStyles = makeStyles({
       marginLeft: 10,
     },
   },
+  navbarButton: {
+    color: "#FFFFFF",
+    textTransform: "initial"
+  },
   brand: {
     fontWeight: "bold",
     fontSize: "1.2rem",
@@ -32,6 +36,9 @@ const useStyles = makeStyles({
   form: {
     maxWidth: 800,
     margin: "10px auto"
+  },
+  transparentBackground: {
+    backgroundColor: "transparent"
   }
 });
 export default useStyles;

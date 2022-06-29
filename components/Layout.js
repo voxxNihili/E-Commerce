@@ -1,25 +1,32 @@
-import React, { useContext } from "react";
+import React, { useEffect, useContext } from "react";
 import Head from "next/head";
 import NextLink from "next/link";
 import {
-  Link,
   AppBar,
   Toolbar,
   Typography,
   Container,
+  Link,
   createTheme,
   ThemeProvider,
   CssBaseline,
   Switch,
   Badge,
+  Button,
+  Menu,
+  MenuItem,
 } from "@material-ui/core";
 import useStyles from "../utils/styles";
 import { Store } from "../utils/Store";
 import Cookies from "js-cookie";
+import { useState } from "react";
+import { useRouter } from "next/router";
 
 export default function Layout({ title, description, children }) {
+  const router = useRouter();
   const { state, dispatch } = useContext(Store);
-  const { darkMode, cart } = state;
+  const [domLoaded, setDomLoaded] = useState(false);
+  const { darkMode, cart, userInfo } = state;
   const theme = createTheme({
     typography: {
       fontFamily: "Arvo",
@@ -50,55 +57,105 @@ export default function Layout({ title, description, children }) {
     const newDarkMode = !darkMode;
     Cookies.set("darkMode", newDarkMode ? "ON" : "OFF");
   };
+  const [anchorEl, setAnchorEl] = useState(null);
+  const loginClickHandler = (e) => {
+    setAnchorEl(e.currentTarget);
+  };
+  const loginMenuCloseHandler = () => {
+    setAnchorEl(null);
+  };
+  const logoutClickHandler = () => {
+    setAnchorEl(null);
+    dispatch({ type: "USER_LOGOUT" });
+    Cookies.remove("userInfo");
+    Cookies.remove("cartItems");
+    router.push("/");
+  };
+  useEffect(() => {
+    setDomLoaded(true);
+  }, []);
   return (
     <div>
-      <Head>
-        <title> {title ? `${title} - E-Commerce` : "E-Commerce"}</title>
-        {description && <meta name="description" content={description}></meta>}
-      </Head>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <AppBar position="static" className={classes.navbar}>
-          <Toolbar>
-            <NextLink href="/" passHref>
-              <Link>
-                <Typography className={classes.brand}>E-Commerce</Typography>
-              </Link>
-            </NextLink>
-            <div className={classes.grow}></div>
-            <div>
-              <Switch
-                checked={darkMode}
-                onChange={darkModeChangeHandler}
-              ></Switch>
-              <NextLink href="/cart" passHref>
-                <Link>
-                  {cart.cartItems.length > 0 ? (
-                    <Badge
-                    overlap="rectangular"
-                      color="secondary"
-                      badgeContent={cart.cartItems.length}
-                    >
-                      Cart
-                    </Badge>
+      {domLoaded && (
+        <>
+          <Head>
+            <title> {title ? `${title} - E-Commerce` : "E-Commerce"}</title>
+            {description && (
+              <meta name="description" content={description}></meta>
+            )}
+          </Head>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <AppBar position="static" className={classes.navbar}>
+              <Toolbar>
+                <NextLink href="/" passHref>
+                  <Link>
+                    <Typography className={classes.brand}>
+                      E-Commerce
+                    </Typography>
+                  </Link>
+                </NextLink>
+                <div className={classes.grow}></div>
+                <div>
+                  <Switch
+                    checked={darkMode}
+                    onChange={darkModeChangeHandler}
+                  ></Switch>
+                  <NextLink href="/cart" passHref>
+                    <Link>
+                      {cart.cartItems.length > 0 ? (
+                        <Badge
+                          color="secondary"
+                          badgeContent={cart.cartItems.length}
+                        >
+                          Cart
+                        </Badge>
+                      ) : (
+                        "Cart"
+                      )}
+                    </Link>
+                  </NextLink>
+                  {userInfo ? (
+                    <>
+                      <Button
+                        aria-controls="simple-menu"
+                        aria-haspopup="true"
+                        onClick={loginClickHandler}
+                        className={classes.navbarButton}
+                      >
+                        {userInfo.name}
+                      </Button>
+                      <Menu
+                        id="simple-menu"
+                        anchorEl={anchorEl}
+                        keepMounted
+                        open={Boolean(anchorEl)}
+                        onClose={loginMenuCloseHandler}
+                      >
+                        <MenuItem onClick={loginMenuCloseHandler}>
+                          Profile
+                        </MenuItem>
+                        <MenuItem onClick={loginMenuCloseHandler}>
+                          My account
+                        </MenuItem>
+                        <MenuItem onClick={logoutClickHandler}>Logout</MenuItem>
+                      </Menu>
+                    </>
                   ) : (
-                    "Cart"
+                    <NextLink href="/login" passHref>
+                      <Link>Login</Link>
+                    </NextLink>
                   )}
-                </Link>
-              </NextLink>
-              <NextLink href="/login" passHref>
-                <Link>Login</Link>
-              </NextLink>
-            </div>
-          </Toolbar>
-        </AppBar>
-        <Container className={classes.main}>{children}</Container>
-        <footer>
-          <Typography className={classes.footer}>
-            All Rights Reserved. Next E-Commerce
-          </Typography>
-        </footer>
-      </ThemeProvider>
+                </div>
+              </Toolbar>
+            </AppBar>
+            <Container className={classes.main}>{children}</Container>
+            <footer className={classes.footer}>
+              <Typography>All Rights Reserved. Next E-Commerce</Typography>
+            </footer>
+          </ThemeProvider>
+        </>
+      )}
     </div>
   );
 }
